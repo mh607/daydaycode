@@ -18,23 +18,25 @@ bool compressFileToZip(const char* source, const char* dest) {
 
     std::vector<char> buffer((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
     uint32_t sourceLen = buffer.size();
-    uint32_t destLen = sourceLen;
-    // std::vector<Bytef> compressedData(destLen);
+    uint32_t destLen = compressBound(sourceLen);
+    std::vector<Bytef> compressedData(destLen);
 
-    // int result = compress(compressedData.data(), (ulong*)&destLen, reinterpret_cast<Bytef*>(buffer.data()), sourceLen);
-    // if (result != Z_OK) {
-    //     std::cerr << "Compression error: " << result << std::endl;
-    //     return false;
-    // }
+    int result = compress(compressedData.data(), (ulong*)&destLen, reinterpret_cast<Bytef*>(buffer.data()), buffer.size());
+    if (result != Z_OK) {
+        std::cerr << "Compression error: " << result << std::endl;
+        return false;
+    }
+    sourceLen = buffer.size();
 
     // Write ZIP file header
     outFile.write("PK\3\4", 4); // Local file header signature
-    outFile.put(10); outFile.put(0); // Version needed to extract
+    outFile.put(20); outFile.put(0); // Version needed to extract
     outFile.put(0); outFile.put(0); // General purpose bit flag
-    outFile.put(0); outFile.put(0); // Compression method (deflate)
+    outFile.put(8); outFile.put(0); // Compression method (deflate)
     outFile.put(0); outFile.put(0); // File last modification time
     outFile.put(0); outFile.put(0); // File last modification date
-    uint32_t crc32Val = 0x9236DA01;
+    uLong crc32Val = crc32(0L, Z_NULL, 0);
+    crc32Val = crc32(crc32Val, reinterpret_cast<Bytef*>(buffer.data()), sourceLen);
     outFile.write(reinterpret_cast<char*>(&crc32Val), 4);// crc32校验码
     outFile.write(reinterpret_cast<char*>(&destLen), 4); // 18 Compressed size
     outFile.write(reinterpret_cast<char*>(&sourceLen), 4); // 22 Uncompressed size
@@ -45,16 +47,17 @@ bool compressFileToZip(const char* source, const char* dest) {
     // Write 文件名
     outFile.write(reinterpret_cast<char*>(fileName), sizeof(fileName) - 1);
     // Write compressed data
-    outFile.write(reinterpret_cast<char*>(buffer.data()), destLen);
+    outFile.write(reinterpret_cast<char*>(compressedData.data()), destLen);
 
     // Write ZIP file footer
     outFile.write("PK\1\2", 4); // Central directory file header signature
-    outFile.put(0); outFile.put(0); // Version made by
-    outFile.put(10); outFile.put(0); // Version needed to extract
+    outFile.put(63); outFile.put(0); // Version made by
+    outFile.put(20); outFile.put(0); // Version needed to extract
     outFile.put(0); outFile.put(0); // General purpose bit flag
     outFile.put(8); outFile.put(0); // Compression method (deflate)
     outFile.put(0); outFile.put(0); // File last modification time
     outFile.put(0); outFile.put(0); // File last modification date
+    outFile.write(reinterpret_cast<char*>(&crc32Val), 4);// crc32校验码
     outFile.write(reinterpret_cast<char*>(&destLen), 4); // Compressed size
     outFile.write(reinterpret_cast<char*>(&sourceLen), 4); // Uncompressed size
     outFile.put(uint32_t(sizeof(fileName) - 1)); outFile.put(0); // File name length
@@ -62,8 +65,8 @@ bool compressFileToZip(const char* source, const char* dest) {
     outFile.put(0); outFile.put(0); // File comment length
     outFile.put(0); outFile.put(0); // Disk number start
     outFile.put(0); outFile.put(0); // Internal file attributes
-    outFile.put(0); outFile.put(0); // External file attributes
-    outFile.put(0); outFile.put(0); // Relative offset of local header
+    outFile.put(0); outFile.put(0);outFile.put(0); outFile.put(0); // External file attributes
+    outFile.put(0); outFile.put(0);outFile.put(0); outFile.put(0); // Relative offset of local header
     outFile.write(reinterpret_cast<char*>(fileName), sizeof(fileName) - 1);
 
     outFile.write("PK\5\6", 4); // 0 End of central directory signature
