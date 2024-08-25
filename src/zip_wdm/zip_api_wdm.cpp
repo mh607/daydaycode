@@ -21,7 +21,7 @@ bool compressFileToZip(const char* source, const char* dest) {
     uint32_t destLen = compressBound(sourceLen);
     std::vector<Bytef> compressedData(destLen);
 
-    int result = compress(compressedData.data(), (ulong*)&destLen, reinterpret_cast<Bytef*>(buffer.data()), buffer.size());
+    int result = compress(compressedData.data(), (void*)&destLen, reinterpret_cast<Bytef*>(buffer.data()), buffer.size());
     if (result != Z_OK) {
         std::cerr << "Compression error: " << result << std::endl;
         return false;
@@ -35,7 +35,7 @@ bool compressFileToZip(const char* source, const char* dest) {
     outFile.put(8); outFile.put(0); // Compression method (deflate)
     outFile.put(0); outFile.put(0); // File last modification time
     outFile.put(0); outFile.put(0); // File last modification date
-    uLong crc32Val = crc32(0L, Z_NULL, 0);
+    uint32_t crc32Val = crc32(0L, Z_NULL, 0);
     crc32Val = crc32(crc32Val, reinterpret_cast<Bytef*>(buffer.data()), sourceLen);
     outFile.write(reinterpret_cast<char*>(&crc32Val), 4);// crc32校验码
     outFile.write(reinterpret_cast<char*>(&destLen), 4); // 18 Compressed size

@@ -11,8 +11,8 @@ set(CMAKE_BUILD_TYPE Debug)
 
 include_directories(${CMAKE_SOURCE_DIR}/include /usr/include)
 
-aux_source_directory(src/ SRC_LISTS)
+aux_source_directory(src/vector/ SRC_LISTS)
 
 add_executable(test_exe main.cpp ${SRC_LISTS})
 
-target_link_libraries(test_exe ZLIB::ZLIB /usr/lib/x86_64-linux-gnu/libminizip.a)
+target_link_libraries(test_exe ZLIB::ZLIB)
