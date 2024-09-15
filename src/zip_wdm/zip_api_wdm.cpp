@@ -18,15 +18,16 @@ bool compressFileToZip(const char* source, const char* dest) {
 
     std::vector<char> buffer((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
     uint32_t sourceLen = buffer.size();
-    uint32_t destLen = compressBound(sourceLen);
+    auto destLen = compressBound(sourceLen);
     std::vector<Bytef> compressedData(destLen);
 
-    int result = compress(compressedData.data(), (void*)&destLen, reinterpret_cast<Bytef*>(buffer.data()), buffer.size());
+    int result = compress2(compressedData.data(), &destLen, reinterpret_cast<Bytef*>(buffer.data()), buffer.size(), Z_BEST_COMPRESSION);
     if (result != Z_OK) {
         std::cerr << "Compression error: " << result << std::endl;
         return false;
     }
     sourceLen = buffer.size();
+    uint32_t destLenAct = destLen - 2 - 4;
 
     // Write ZIP file header
     outFile.write("PK\3\4", 4); // Local file header signature
@@ -38,7 +39,7 @@ bool compressFileToZip(const char* source, const char* dest) {
     uint32_t crc32Val = crc32(0L, Z_NULL, 0);
     crc32Val = crc32(crc32Val, reinterpret_cast<Bytef*>(buffer.data()), sourceLen);
     outFile.write(reinterpret_cast<char*>(&crc32Val), 4);// crc32校验码
-    outFile.write(reinterpret_cast<char*>(&destLen), 4); // 18 Compressed size
+    outFile.write(reinterpret_cast<char*>(&destLenAct), 4); // 18 Compressed size
     outFile.write(reinterpret_cast<char*>(&sourceLen), 4); // 22 Uncompressed size
     char fileName[] = "input.txt";
     outFile.put(uint32_t(sizeof(fileName) - 1)); outFile.put(0); // 26 File name length
@@ -47,7 +48,7 @@ bool compressFileToZip(const char* source, const char* dest) {
     // Write 文件名
     outFile.write(reinterpret_cast<char*>(fileName), sizeof(fileName) - 1);
     // Write compressed data
-    outFile.write(reinterpret_cast<char*>(compressedData.data()), destLen);
+    outFile.write(reinterpret_cast<char*>(compressedData.data()) + 2, destLenAct);
 
     // Write ZIP file footer
     outFile.write("PK\1\2", 4); // Central directory file header signature
@@ -58,7 +59,7 @@ bool compressFileToZip(const char* source, const char* dest) {
     outFile.put(0); outFile.put(0); // File last modification time
     outFile.put(0); outFile.put(0); // File last modification date
     outFile.write(reinterpret_cast<char*>(&crc32Val), 4);// crc32校验码
-    outFile.write(reinterpret_cast<char*>(&destLen), 4); // Compressed size
+    outFile.write(reinterpret_cast<char*>(&destLenAct), 4); // Compressed size
     outFile.write(reinterpret_cast<char*>(&sourceLen), 4); // Uncompressed size
     outFile.put(uint32_t(sizeof(fileName) - 1)); outFile.put(0); // File name length
     outFile.put(0); outFile.put(0); // Extra field length
@@ -76,7 +77,7 @@ bool compressFileToZip(const char* source, const char* dest) {
     outFile.put(1); outFile.put(0); // 10 Total number of central directory records
     uint32_t centSize = 46 + sizeof(fileName) - 1; // Size of central directory
     outFile.write(reinterpret_cast<char*>(&centSize), 4); // 12 Size of central directory
-    uint32_t offset = 30 + sizeof(fileName) - 1 + destLen; // Offset
+    uint32_t offset = 30 + sizeof(fileName) - 1 + destLenAct; // Offset
     outFile.write(reinterpret_cast<char*>(&offset), 4); // 16 Offset of start of central directory
     outFile.put(0); outFile.put(0); // 20 Comment length
 
