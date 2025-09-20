@@ -5,6 +5,7 @@
 #include <fstream>
 #include <vector>
 #include <zlib.h>
+#include <cstdint>
 
 bool compressFileToZip(const char* source, const char* dest) {
     std::ifstream inFile(source, std::ios::binary);
