@@ -48,5 +48,6 @@
         "ctime": "cpp",
         "fstream": "cpp"
     },
-    "cmake.configureOnOpen": true
+    "cmake.configureOnOpen": true,
+    "cmake.sourceDirectory": "/Users/minghao/code/c_code/daydaycode/test"
 }

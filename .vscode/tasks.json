@@ -9,7 +9,7 @@
 				".."
 			],
 			"options": {
-				"cwd": "${workspaceFolder}/build"
+				"cwd": "${fileDirname}/build"
 			}
 		},
 		{
@@ -23,7 +23,7 @@
 
 			],
 			"options": {
-				"cwd": "${workspaceFolder}/build"
+				"cwd": "${fileDirname}/build"
 			}
 		},
 		{
