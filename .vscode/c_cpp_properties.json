@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "name": "daydaycode",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/common/include"
+            ]
+        }
+    ],
+    "version": 4
+}

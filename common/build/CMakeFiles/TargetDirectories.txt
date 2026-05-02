@@ -1,0 +1,3 @@
+/Users/minghao/code/c_code/daydaycode/common/build/CMakeFiles/common.dir
+/Users/minghao/code/c_code/daydaycode/common/build/CMakeFiles/edit_cache.dir
+/Users/minghao/code/c_code/daydaycode/common/build/CMakeFiles/rebuild_cache.dir
