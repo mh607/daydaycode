@@ -1,5 +1,36 @@
 #include <iostream>
 #include "common.h"
+#include <queue>
+
+TreeNode* head;
+TreeNode* pre;
+
+void dfs(TreeNode* root) {
+    if (root == nullptr) {
+        return;
+    }
+    dfs(root->left);
+    if (pre == nullptr) {
+        head = root;
+    } else {
+        pre->right = root;
+    }
+    root->left = pre;
+    pre = root;
+    dfs(root->right);
+}
+
+TreeNode* treeToList(TreeNode* root) {
+    if (root == nullptr) {
+        return nullptr;
+    }
+    head = nullptr;
+    pre = nullptr;
+    dfs(root);
+    pre->right = head;
+    head->left = pre;
+    return head;
+}
 
 int main() {
     fstream in("../data/input.txt");
@@ -9,8 +40,9 @@ int main() {
     }
     vector<string> arr;
     ReadArray1(in, arr);
-    vector<TreeNode> nodes(arr.size());
-    TreeNode* root = nullptr;
-    BuildTree(root, arr, nodes);
+    vector<TreeNode> nodes1(arr.size());
+    TreeNode* root1 = nullptr;
+    BuildTree(root1, arr, nodes1);
+    treeToList(root1);
     return 0;
 }
